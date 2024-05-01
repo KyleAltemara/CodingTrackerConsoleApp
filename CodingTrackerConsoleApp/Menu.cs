@@ -1,4 +1,5 @@
 ﻿using Spectre.Console;
+using System.Diagnostics;
 
 namespace CodingTrackerConsoleApp;
 
@@ -10,6 +11,7 @@ internal static class Menu
         var menuOptions = new Dictionary<string, Action>
         {
             { "Log Coding Time", () => LogCodingTime(codingTrackerDatabase) },
+            { "Start Coding Session", () => StartStopwatch(codingTrackerDatabase) },
             { "Print Coding Time Logs", () => PrintLogs(codingTrackerDatabase) },
             { "Exit", () => Environment.Exit(0) },
         };
@@ -121,6 +123,31 @@ internal static class Menu
         {
             AnsiConsole.MarkupLine("[bold red]Invalid date format. Please try again.[/]");
         }
+    }
+
+    internal static void StartStopwatch(CodingTrackerDatabase codingTrackerDatabase)
+    {
+        var startTime = GetCurrentDateTimeNoMilliseconds();
+        AnsiConsole.MarkupLine("[bold green]Coding session started.[/]");
+        AnsiConsole.MarkupLine("Press any key to stop the stopwatch and log the coding time.");
+        while (!Console.KeyAvailable)
+        {
+            AnsiConsole.Markup($"\r[bold]Elapsed Time:[/] {DateTime.Now - startTime:hh\\:mm\\:ss}");
+            Task.Delay(100);
+        }
+
+        Console.ReadKey(true); // Clear the key from the buffer
+        AnsiConsole.WriteLine();
+        var endTime = GetCurrentDateTimeNoMilliseconds();
+        codingTrackerDatabase.LogCodingTime(new CodingSession { StartTime = startTime, EndTime = endTime });
+        AnsiConsole.MarkupLine("[bold green]Coding time logged successfully.[/]");
+        AnsiConsole.MarkupLine($"[bold]Duration:[/] {endTime - startTime:hh\\:mm\\:ss}");
+    }
+
+    private static DateTime GetCurrentDateTimeNoMilliseconds()
+    {
+        var currentTime = DateTime.Now;
+        return new DateTime(currentTime.Ticks - (currentTime.Ticks % TimeSpan.TicksPerSecond), currentTime.Kind);
     }
 
     internal static void PrintLogs(CodingTrackerDatabase codingTrackerDatabase)
