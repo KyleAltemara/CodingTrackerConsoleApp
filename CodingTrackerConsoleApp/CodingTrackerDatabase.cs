@@ -43,17 +43,17 @@ public class CodingTrackerDatabase : IDisposable
         }
     }
 
-    internal void LogCodingTime(DateTime startTime, DateTime endTime)
+    internal void LogCodingTime(CodingSession codingSession)
     {
         _connection?.Open();
-        _connection?.Execute("INSERT INTO CodingTracker (StartTime, EndTime) VALUES (@StartTime, @EndTime)", new { StartTime = startTime, EndTime = endTime });
+        _connection?.Execute("INSERT INTO CodingTracker (StartTime, EndTime) VALUES (@StartTime, @EndTime)", codingSession);
         _connection?.Close();
     }
 
-    internal IEnumerable<(int id, DateTime startTime, DateTime endTime)> GetCodingTimeLogs()
+    internal IEnumerable<CodingSession> GetCodingTimeLogs()
     {
         _connection?.Open();
-        var logs = _connection?.Query<(int id, DateTime startTime, DateTime endTime)>("SELECT * FROM CodingTracker");
+        var logs = _connection?.Query<CodingSession>("SELECT Id, StartTime, EndTime FROM CodingTracker");
         _connection?.Close();
         return logs ?? [];
     }

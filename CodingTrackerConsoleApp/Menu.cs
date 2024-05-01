@@ -52,7 +52,7 @@ internal static class Menu
             }
         }
 
-        codingTrackerDatabase.LogCodingTime(startTime.Value, endTime.Value);
+        codingTrackerDatabase.LogCodingTime(new CodingSession { StartTime = startTime.Value, EndTime = endTime.Value });
     }
 
     internal static DateTime? GetDateTime()
@@ -134,15 +134,16 @@ internal static class Menu
         }
 
         var table = new Table();
-        table.AddColumn("Id");
         table.AddColumn("Start Time");
         table.AddColumn("End Time");
         table.AddColumn("Duration");
 
-        foreach ((int id, DateTime startTime, DateTime endTime) in logs)
+        foreach (var codingSession in logs)
         {
+            var startTime = codingSession.StartTime;
+            var endTime = codingSession.EndTime;
             TimeSpan duration = endTime - startTime;
-            table.AddRow(id.ToString(), startTime.ToString("yyyy-MM-dd HH:mm"), endTime.ToString("yyyy-MM-dd HH:mm"), duration.ToString());
+            table.AddRow(startTime.ToString("yyyy-MM-dd HH:mm"), endTime.ToString("yyyy-MM-dd HH:mm"), duration.ToString());
         }
 
         AnsiConsole.Write(table);
