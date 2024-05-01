@@ -1,20 +1,25 @@
 ﻿using Spectre.Console;
-using System.Diagnostics;
 
 namespace CodingTrackerConsoleApp;
 
+/// <summary>
+/// Represents the menu of the coding tracker console application.
+/// </summary>
 internal static class Menu
 {
+    /// <summary>
+    /// Displays the main menu and handles user input.
+    /// </summary>
     internal static void MainMenu()
     {
         var codingTrackerDatabase = new CodingTrackerDatabase();
         var menuOptions = new Dictionary<string, Action>
-        {
-            { "Log Coding Time", () => LogCodingTime(codingTrackerDatabase) },
-            { "Start Coding Session", () => StartStopwatch(codingTrackerDatabase) },
-            { "Print Coding Time Logs", () => PrintLogs(codingTrackerDatabase) },
-            { "Exit", () => Environment.Exit(0) },
-        };
+            {
+                { "Log Coding Time", () => LogCodingTime(codingTrackerDatabase) },
+                { "Start Coding Session", () => StartStopwatch(codingTrackerDatabase) },
+                { "Print Coding Time Logs", () => PrintLogs(codingTrackerDatabase) },
+                { "Exit", () => Environment.Exit(0) },
+            };
 
         var menu = new SelectionPrompt<string>()
             .Title("[bold]Coding Tracker Menu[/]")
@@ -27,6 +32,10 @@ internal static class Menu
         }
     }
 
+    /// <summary>
+    /// Logs the coding time by prompting the user for start and end date and time.
+    /// </summary>
+    /// <param name="codingTrackerDatabase">The coding tracker database.</param>
     internal static void LogCodingTime(CodingTrackerDatabase codingTrackerDatabase)
     {
         AnsiConsole.MarkupLine("[bold]Log Coding Time[/]");
@@ -57,6 +66,10 @@ internal static class Menu
         codingTrackerDatabase.LogCodingTime(new CodingSession { StartTime = startTime.Value, EndTime = endTime.Value });
     }
 
+    /// <summary>
+    /// Prompts the user to enter a date and time and returns the parsed DateTime value.
+    /// </summary>
+    /// <returns>The parsed DateTime value or null if the input is invalid or empty.</returns>
     internal static DateTime? GetDateTime()
     {
         DateTime? date = null;
@@ -125,6 +138,10 @@ internal static class Menu
         }
     }
 
+    /// <summary>
+    /// Starts the stopwatch and logs the coding time when the user stops it.
+    /// </summary>
+    /// <param name="codingTrackerDatabase">The coding tracker database.</param>
     internal static void StartStopwatch(CodingTrackerDatabase codingTrackerDatabase)
     {
         var startTime = GetCurrentDateTimeNoMilliseconds();
@@ -144,12 +161,20 @@ internal static class Menu
         AnsiConsole.MarkupLine($"[bold]Duration:[/] {endTime - startTime:hh\\:mm\\:ss}");
     }
 
+    /// <summary>
+    /// Gets the current DateTime value without milliseconds.
+    /// </summary>
+    /// <returns>The current DateTime value without milliseconds.</returns>
     private static DateTime GetCurrentDateTimeNoMilliseconds()
     {
         var currentTime = DateTime.Now;
         return new DateTime(currentTime.Ticks - (currentTime.Ticks % TimeSpan.TicksPerSecond), currentTime.Kind);
     }
 
+    /// <summary>
+    /// Prints the coding time logs from the coding tracker database.
+    /// </summary>
+    /// <param name="codingTrackerDatabase">The coding tracker database.</param>
     internal static void PrintLogs(CodingTrackerDatabase codingTrackerDatabase)
     {
         AnsiConsole.MarkupLine("[bold]Coding Time Logs[/]");
