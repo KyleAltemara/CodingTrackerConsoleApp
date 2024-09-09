@@ -5,7 +5,7 @@ namespace CodingTrackerConsoleApp;
 /// <summary>
 /// Represents the menu of the coding tracker console application.
 /// </summary>
-internal static class Menu
+public static class Menu
 {
     /// <summary>
     /// Displays the main menu and handles user input.
@@ -36,7 +36,7 @@ internal static class Menu
     /// Logs the coding time by prompting the user for start and end date and time.
     /// </summary>
     /// <param name="codingTrackerDatabase">The coding tracker database.</param>
-    internal static void LogCodingTime(CodingTrackerDatabase codingTrackerDatabase)
+    public static void LogCodingTime(CodingTrackerDatabase codingTrackerDatabase)
     {
         AnsiConsole.MarkupLine("[bold]Log Coding Time[/]");
         AnsiConsole.MarkupLine("Enter the start date and time:");
@@ -70,7 +70,7 @@ internal static class Menu
     /// Prompts the user to enter a date and time and returns the parsed DateTime value.
     /// </summary>
     /// <returns>The parsed DateTime value or null if the input is invalid or empty.</returns>
-    internal static DateTime? GetDateTime()
+    public static DateTime? GetDateTime()
     {
         DateTime? date = null;
         while (!date.HasValue)
@@ -83,13 +83,7 @@ internal static class Menu
                     return null;
                 }
 
-                if (input.Length != 10 || input[4] != '-' || input[7] != '-')
-                {
-                    PrintInvalidDateFormat();
-                    continue;
-                }
-
-                date = DateTime.Parse(input);
+                date = ParseDate(input);
             }
             catch (Exception)
             {
@@ -103,26 +97,16 @@ internal static class Menu
             try
             {
                 var input = AnsiConsole.Ask<string>("Please enter the time (format: HH:mm): ");
-                if (string.IsNullOrWhiteSpace(input.ToString()))
+                if (string.IsNullOrWhiteSpace(input))
                 {
                     return null;
                 }
 
-                if (input.Length != 5 || input[2] != ':')
+                hoursAndMinutes = ParseTime(input);
+                if (hoursAndMinutes.HasValue)
                 {
-                    PrintInvalidDateFormat();
-                    continue;
+                    date = date.Value.AddHours(hoursAndMinutes.Value.Hour).AddMinutes(hoursAndMinutes.Value.Minute);
                 }
-
-                hoursAndMinutes = DateTime.Parse(input);
-                if (hoursAndMinutes.Value.Hour > 23 || hoursAndMinutes.Value.Minute > 59)
-                {
-                    PrintInvalidDateFormat();
-                    hoursAndMinutes = null;
-                    continue;
-                }
-
-                date = date.Value.AddHours(hoursAndMinutes.Value.Hour).AddMinutes(hoursAndMinutes.Value.Minute);
             }
             catch (Exception)
             {
@@ -131,18 +115,59 @@ internal static class Menu
         }
 
         return date.Value;
+    }
 
-        static void PrintInvalidDateFormat()
+    /// <summary>
+    /// Parses the input string to a DateTime value.
+    /// </summary>
+    /// <param name="input">The input string to parse.</param></param>
+    /// <returns>The parsed DateTime value.</returns>
+    /// <exception cref="FormatException"></exception>
+    public static DateTime ParseDate(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input) || input.Length != 10 || input[4] != '-' || input[7] != '-')
         {
-            AnsiConsole.MarkupLine("[bold red]Invalid date format. Please try again.[/]");
+            throw new FormatException("Invalid date format.");
         }
+
+        return DateTime.Parse(input);
+    }
+
+    /// <summary>
+    /// Parses the input string to a DateTime value representing a time.
+    /// </summary>
+    /// <param name="input">The input string to parse.</param></param>
+    /// <returns>The parsed DateTime value representing a time.</returns>
+    /// <exception cref="FormatException"></exception>
+    public static DateTime ParseTime(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input) || input.Length != 5 || input[2] != ':')
+        {
+            throw new FormatException("Invalid time format.");
+        }
+
+        var time = DateTime.Parse(input);
+        if (time.Hour > 23 || time.Minute > 59)
+        {
+            throw new FormatException("Invalid time value.");
+        }
+
+        return time;
+    }
+
+    /// <summary>
+    /// Prints an error message for an invalid date format.
+    /// </summary>
+    private static void PrintInvalidDateFormat()
+    {
+        AnsiConsole.MarkupLine("[bold red]Invalid date format. Please try again.[/]");
     }
 
     /// <summary>
     /// Starts the stopwatch and logs the coding time when the user stops it.
     /// </summary>
     /// <param name="codingTrackerDatabase">The coding tracker database.</param>
-    internal static void StartStopwatch(CodingTrackerDatabase codingTrackerDatabase)
+    public static void StartStopwatch(CodingTrackerDatabase codingTrackerDatabase)
     {
         var startTime = GetCurrentDateTimeNoMilliseconds();
         AnsiConsole.MarkupLine("[bold green]Coding session started.[/]");
@@ -162,20 +187,10 @@ internal static class Menu
     }
 
     /// <summary>
-    /// Gets the current DateTime value without milliseconds.
-    /// </summary>
-    /// <returns>The current DateTime value without milliseconds.</returns>
-    private static DateTime GetCurrentDateTimeNoMilliseconds()
-    {
-        var currentTime = DateTime.Now;
-        return new DateTime(currentTime.Ticks - (currentTime.Ticks % TimeSpan.TicksPerSecond), currentTime.Kind);
-    }
-
-    /// <summary>
     /// Prints the coding time logs from the coding tracker database.
     /// </summary>
     /// <param name="codingTrackerDatabase">The coding tracker database.</param>
-    internal static void PrintLogs(CodingTrackerDatabase codingTrackerDatabase)
+    public static void PrintLogs(CodingTrackerDatabase codingTrackerDatabase)
     {
         AnsiConsole.MarkupLine("[bold]Coding Time Logs[/]");
         var logs = codingTrackerDatabase.GetCodingTimeLogs();
@@ -199,5 +214,15 @@ internal static class Menu
         }
 
         AnsiConsole.Write(table);
+    }
+
+    /// <summary>
+    /// Gets the current DateTime value without milliseconds.
+    /// </summary>
+    /// <returns>The current DateTime value without milliseconds.</returns>
+    private static DateTime GetCurrentDateTimeNoMilliseconds()
+    {
+        var currentTime = DateTime.Now;
+        return new DateTime(currentTime.Ticks - (currentTime.Ticks % TimeSpan.TicksPerSecond), currentTime.Kind);
     }
 }
